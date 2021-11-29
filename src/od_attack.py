@@ -6,7 +6,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from tqdm import tqdm
 
-from util import non_max_suppression
+from .util import non_max_suppression
 
 
 class ODPGDAttackBase(ABC):
