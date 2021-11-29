@@ -1,5 +1,19 @@
+from typing import Optional, Tuple, Union
+
+import cv2
+import numpy as np
 import torch
 import torchvision
+
+
+def mksquare(img: np.ndarray,
+             pad_color: Tuple[float, float, float] = (114, 114, 114),
+             size: Optional[Tuple[int, int]] = None) -> np.ndarray:
+  h, w, *_ = img.shape
+  vpad, hpad = [max(0, w - h) // 2] * 2, [max(0, h - w) // 2] * 2
+  img = cv2.copyMakeBorder(img, *vpad, *hpad, cv2.BORDER_CONSTANT, value=pad_color)
+  img = cv2.resize(img, size) if size is not None else img
+  return img
 
 
 def xywh2xyxy(xywh: torch.Tensor) -> torch.Tensor:
