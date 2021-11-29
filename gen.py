@@ -36,7 +36,7 @@ class AppDelegate(object):
     adv_attack = YOLOv5VanishAttack(model=yolov5, conf_thres=0.15, iou_thres=0.9, alpha=0.0015, eps=0.015, max_iter=20)
 
     x = img.astype(float) / 255
-    x_adv = (adv_attack(x) * 255).byte()
+    x_adv = (adv_attack(x, verbose=args.verbose) * 255).byte()
 
     save_image_tensor(args.out_path, x_adv)
 
@@ -62,6 +62,7 @@ if __name__ == '__main__':
   arg_parser.add_argument('-s', '--size', dest='img_size', type=int, default=640,
                           help='''
                           A image size that will be passed to model and created as adversarial example.''')
+  arg_parser.add_argument('-v', '--verbose', dest='verbose', type=bool, default=True)
 
   args = arg_parser.parse_args()
   app = AppDelegate()
