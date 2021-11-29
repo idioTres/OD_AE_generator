@@ -1,3 +1,4 @@
+from abc import ABC, abstractmethod
 from typing import Any, Dict
 
 import torch
@@ -8,7 +9,48 @@ from tqdm import tqdm
 from util import non_max_suppression
 
 
-class YOLOv5VanishAttack(nn.Module):
+class ODPGDAttackBase(ABC):
+
+  def __init__(self,
+               conf_thres: float = 0.15,
+               iou_thres: float = 0.9,
+               alpha: float = 0.0005,
+               eps: float = 0.005,
+               max_iter: int = 20):
+    super().__init__()
+
+    self._conf_thres = conf_thres
+    self._iou_thres = iou_thres
+    self._alpha = alpha
+    self._eps = eps
+    self._max_iter = max_iter
+
+  @abstractmethod
+  def forward(self, *args, **kargs) -> Any:
+    pass
+
+  @property
+  def conf_thres(self) -> float:
+    return self._conf_thres
+
+  @property
+  def iou_thres(self) -> float:
+    return self._iou_thres
+
+  @property
+  def alpha(self) -> float:
+    return self._alpha
+
+  @property
+  def eps(self) -> float:
+    return self._eps
+
+  @property
+  def max_iter(self) -> int:
+    return self._max_iter
+
+
+class YOLOv5VanishAttack(ODPGDAttackBase, nn.Module):
 
   def __init__(self,
                yolov5: nn.Module,
@@ -17,7 +59,8 @@ class YOLOv5VanishAttack(nn.Module):
                alpha: float = 0.0005,
                eps: float = 0.005,
                max_iter: int = 20):
-    super().__init__()
+    super().__init__(conf_thres=conf_thres, iou_thres=iou_thres,
+                     alpha=alpha, eps=eps, max_iter=max_iter)
 
     if 'AutoShape' in str(type(yolov5)):
       yolov5 = yolov5.model
@@ -27,18 +70,13 @@ class YOLOv5VanishAttack(nn.Module):
         m.inplace = False
 
     self.__yolov5 = yolov5
-    self.__conf_thres = conf_thres
-    self.__iou_thres = iou_thres
-    self.__alpha = alpha
-    self.__eps = eps
-    self.__max_iter = max_iter
 
   def forward(self, x: torch.Tensor, **kargs: Dict[str, Any]) -> torch.Tensor:
-    conf_thres = self.__conf_thres if 'conf_thres' not in kargs else kargs['conf_thres']
-    iou_thres = self.__iou_thres if 'iou_thres' not in kargs else kargs['iou_thres']
-    alpha = self.__alpha if 'alpha' not in kargs else kargs['alpha']
-    eps = self.__eps if 'eps' not in kargs else kargs['eps']
-    max_iter = self.__max_iter if 'max_iter' not in kargs else kargs['max_iter']
+    conf_thres = self._conf_thres if 'conf_thres' not in kargs else kargs['conf_thres']
+    iou_thres = self._iou_thres if 'iou_thres' not in kargs else kargs['iou_thres']
+    alpha = self._alpha if 'alpha' not in kargs else kargs['alpha']
+    eps = self._eps if 'eps' not in kargs else kargs['eps']
+    max_iter = self._max_iter if 'max_iter' not in kargs else kargs['max_iter']
     verbose = False if 'verbose' not in kargs else kargs['verbose']
 
     if verbose:
@@ -71,23 +109,3 @@ class YOLOv5VanishAttack(nn.Module):
       pbar.close()
 
     return x_adv
-
-  @property
-  def conf_thres(self) -> float:
-    return self.__conf_thres
-
-  @property
-  def iou_thres(self) -> float:
-    return self.__iou_thres
-
-  @property
-  def alpha(self) -> float:
-    return self.__alpha
-
-  @property
-  def eps(self) -> float:
-    return self.__eps
-
-  @property
-  def max_iter(self) -> int:
-    return self.__max_iter
