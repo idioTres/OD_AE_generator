@@ -59,3 +59,21 @@ def non_max_suppression(y_pred: torch.Tensor,
     outputs[i] = x[indices]
 
   return outputs
+
+
+def save_image_tensor(save_path: str, image_tensor: torch.Tensor) -> np.ndarray:
+  ext = save_path[save_path.rindex('.'):]
+  if ext not in ['.bmp', '.png', '.jpg', '.jpeg']:
+    raise ValueError(f'The unsupported image extension is passed (ext={ext}). An image extension must be one of bmp, png, jpg and jpeg.')
+
+  if image_tensor.ndim != 3:
+    raise ValueError('The passed tensor has invalid shape.')
+
+  image_tensor = image_tensor.detach()
+
+  if image_tensor.size(0) == 3:  # assuming that tensor shape is CxHxW.
+    image_tensor = image_tensor.permute(1, 2, 0)
+
+  img = cv2.cvtColor(image_tensor.numpy(), cv2.COLOR_RGB2BGR)
+  cv2.imwrite(save_path, img)
+  return img
