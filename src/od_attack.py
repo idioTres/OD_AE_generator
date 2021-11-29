@@ -6,7 +6,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from tqdm import tqdm
 
-from .util import non_max_suppression
+from .util import query_dict, non_max_suppression
 
 
 class ODPGDAttackBase(ABC):
@@ -67,12 +67,12 @@ class YOLOv5PGDAttackBase(ODPGDAttackBase, nn.Module):
 class YOLOv5VanishAttack(YOLOv5PGDAttackBase):
 
   def forward(self, x: torch.Tensor, **kargs: Dict[str, Any]) -> torch.Tensor:
-    conf_thres = self._conf_thres if 'conf_thres' not in kargs else kargs['conf_thres']
-    iou_thres = self._iou_thres if 'iou_thres' not in kargs else kargs['iou_thres']
-    alpha = self._alpha if 'alpha' not in kargs else kargs['alpha']
-    eps = self._eps if 'eps' not in kargs else kargs['eps']
-    max_iter = self._max_iter if 'max_iter' not in kargs else kargs['max_iter']
-    verbose = False if 'verbose' not in kargs else kargs['verbose']
+    conf_thres = query_dict(kargs, 'conf_thres', self._conf_thres)
+    iou_thres = query_dict(kargs, 'iou_thres', self._iou_thres)
+    alpha = query_dict(kargs, 'alpha', self._alpha)
+    eps = query_dict(kargs, 'eps', self._eps)
+    max_iter = query_dict(kargs, 'max_iter', self._max_iter)
+    verbose = query_dict(kargs, 'verbose', False)
 
     if verbose:
       pbar = tqdm(total=max_iter, leave=True, desc='Generating AE ...')
