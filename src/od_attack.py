@@ -11,12 +11,7 @@ from .util import non_max_suppression
 
 class ODPGDAttackBase(ABC):
 
-  def __init__(self,
-               conf_thres: float = 0.15,
-               iou_thres: float = 0.9,
-               alpha: float = 0.0005,
-               eps: float = 0.005,
-               max_iter: int = 20):
+  def __init__(self, conf_thres: float, iou_thres: float, alpha: float, eps: float, max_iter: float):
     super().__init__()
 
     self._conf_thres = conf_thres
@@ -52,43 +47,24 @@ class ODPGDAttackBase(ABC):
 
 class YOLOv5PGDAttackBase(ODPGDAttackBase, nn.Module):
 
-  def __init__(self, yolov5: nn.Module, conf_thres: float, iou_thres: float, alpha: float, eps: float, max_iter: float):
+  def __init__(self, model: nn.Module, conf_thres: float, iou_thres: float, alpha: float, eps: float, max_iter: float):
     super().__init__(conf_thres=conf_thres, iou_thres=iou_thres, alpha=alpha, eps=eps, max_iter=max_iter)
 
-    if 'AutoShape' in str(type(yolov5)):
-      yolov5 = yolov5.model
+    if 'AutoShape' in str(type(model)):
+      model = model.model
 
-    for m in yolov5.modules():  # disable all inplace operations to calculate loss.
+    for m in model.modules():  # disable all inplace operations to calculate loss.
       if hasattr(m, 'inplace'):
         m.inplace = False
 
-    self._yolov5 = yolov5
+    self._model = model
 
   @property
   def yolov5(self) -> nn.Module:
-    return self._yolov5
+    return self._model
 
 
-class YOLOv5VanishAttack(ODPGDAttackBase, nn.Module):
-
-  def __init__(self,
-               yolov5: nn.Module,
-               conf_thres: float = 0.15,
-               iou_thres: float = 0.9,
-               alpha: float = 0.0005,
-               eps: float = 0.005,
-               max_iter: int = 20):
-    super().__init__(conf_thres=conf_thres, iou_thres=iou_thres,
-                     alpha=alpha, eps=eps, max_iter=max_iter)
-
-    if 'AutoShape' in str(type(yolov5)):
-      yolov5 = yolov5.model
-
-    for m in yolov5.modules():
-      if hasattr(m, 'inplace'):
-        m.inplace = False
-
-    self.__yolov5 = yolov5
+class YOLOv5VanishAttack(YOLOv5PGDAttackBase):
 
   def forward(self, x: torch.Tensor, **kargs: Dict[str, Any]) -> torch.Tensor:
     conf_thres = self._conf_thres if 'conf_thres' not in kargs else kargs['conf_thres']
@@ -101,18 +77,18 @@ class YOLOv5VanishAttack(ODPGDAttackBase, nn.Module):
     if verbose:
       pbar = tqdm(total=max_iter, leave=True, desc='Generating AE ...')
 
-    x = x.to(next(self.__yolov5.parameters()))
+    x = x.to(next(self._model.parameters()))
     x_adv = x
     for _ in range(max_iter):
       x_adv.detach_().requires_grad_(True)
 
-      y_pred = non_max_suppression(self.__yolov5(x_adv)[0], conf_thres, iou_thres)[0]
+      y_pred = non_max_suppression(self._model(x_adv)[0], conf_thres, iou_thres)[0]
       if y_pred.size(0) == 0:  # none of objects are detected.
         break
 
       conf = y_pred[:, 4]
       loss = F.binary_cross_entropy(conf, conf.new_zeros(size=conf.shape), reduction='mean')
-      self.__yolov5.zero_grad()
+      self._model.zero_grad()
       loss.backward()
 
       x_adv = x_adv.detach_() - alpha * x_adv.grad.sign()
