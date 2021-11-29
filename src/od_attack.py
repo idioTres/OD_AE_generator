@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
-from typing import Any, Dict, Tuple
+from typing import Any, Dict, Tuple, Union
 
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -66,13 +67,17 @@ class YOLOv5PGDAttackBase(ODPGDAttackBase, nn.Module):
 
 class YOLOv5VanishAttack(YOLOv5PGDAttackBase):
 
-  def forward(self, x: torch.Tensor, **kargs: Dict[str, Any]) -> torch.Tensor:
+  def forward(self, x: Union[np.ndarray, torch.Tensor], **kargs: Dict[str, Any]) -> torch.Tensor:
     conf_thres = query_dict(kargs, 'conf_thres', self._conf_thres)
     iou_thres = query_dict(kargs, 'iou_thres', self._iou_thres)
     alpha = query_dict(kargs, 'alpha', self._alpha)
     eps = query_dict(kargs, 'eps', self._eps)
     max_iter = query_dict(kargs, 'max_iter', self._max_iter)
     verbose = query_dict(kargs, 'verbose', False)
+
+    if isinstance(x, np.ndarray):
+      x = torch.FloatTensor(x)
+      x = x.permute(2, 0, 1) if x.size(-1) == 3 else x
 
     if verbose:
       pbar = tqdm(total=max_iter, leave=True, desc='Generating AE ...')
