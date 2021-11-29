@@ -1,9 +1,13 @@
-from typing import Optional, Tuple
+from typing import Any, Dict, Optional, Tuple
 
 import cv2
 import numpy as np
 import torch
 import torchvision
+
+
+def query_dict(kargs: Dict[str, Any], key: str, default_value: Optional[Any] = None) -> Any:
+  return kargs[key] if key in kargs else default_value
 
 
 def mksquare(img: np.ndarray,
