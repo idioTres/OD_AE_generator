@@ -76,7 +76,7 @@ class YOLOv5VanishAttack(YOLOv5PGDAttackBase):
     verbose = query_dict(kargs, 'verbose', False)
 
     if isinstance(x, np.ndarray):
-      x = torch.FloatTensor(x)
+      x = torch.from_numpy(x)
       x = x.permute(2, 0, 1) if x.size(-1) == 3 else x
 
     input_shape = x.shape
