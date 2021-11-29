@@ -50,6 +50,25 @@ class ODPGDAttackBase(ABC):
     return self._max_iter
 
 
+class YOLOv5PGDAttackBase(ODPGDAttackBase, nn.Module):
+
+  def __init__(self, yolov5: nn.Module, conf_thres: float, iou_thres: float, alpha: float, eps: float, max_iter: float):
+    super().__init__(conf_thres=conf_thres, iou_thres=iou_thres, alpha=alpha, eps=eps, max_iter=max_iter)
+
+    if 'AutoShape' in str(type(yolov5)):
+      yolov5 = yolov5.model
+
+    for m in yolov5.modules():  # disable all inplace operations to calculate loss.
+      if hasattr(m, 'inplace'):
+        m.inplace = False
+
+    self._yolov5 = yolov5
+
+  @property
+  def yolov5(self) -> nn.Module:
+    return self._yolov5
+
+
 class YOLOv5VanishAttack(ODPGDAttackBase, nn.Module):
 
   def __init__(self,
