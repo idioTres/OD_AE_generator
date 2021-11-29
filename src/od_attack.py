@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any, Dict
+from typing import Any, Dict, Tuple
 
 import torch
 import torch.nn as nn
@@ -47,8 +47,8 @@ class ODPGDAttackBase(ABC):
 
 class YOLOv5PGDAttackBase(ODPGDAttackBase, nn.Module):
 
-  def __init__(self, model: nn.Module, conf_thres: float, iou_thres: float, alpha: float, eps: float, max_iter: float):
-    super().__init__(conf_thres=conf_thres, iou_thres=iou_thres, alpha=alpha, eps=eps, max_iter=max_iter)
+  def __init__(self, model: nn.Module, *args: Tuple[Any, ...], **kargs: Dict[str, Any]):
+    super().__init__(*args, **kargs)
 
     if 'AutoShape' in str(type(model)):
       model = model.model
