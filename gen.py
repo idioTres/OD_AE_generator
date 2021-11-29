@@ -27,10 +27,10 @@ class AppDelegate(object):
 
       os.makedirs(os.path.split(args.out_path)[0], exist_ok=True)
 
-    size = [32 * 20] * 2  # @todo(meo-s): change magic number to program argument.
+    img_size = [args.img_size] * 2
     img = cv2.imread(args.image_path, cv2.IMREAD_COLOR)
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-    img = mksquare(img, size=size)
+    img = mksquare(img, size=img_size)
 
     # @todo(meo-s): change following two lines for users to use their own settings.
     yolov5 = torch.hub.load('ultralytics/yolov5', 'yolov5s', pretrained=True).eval()
@@ -60,6 +60,9 @@ if __name__ == '__main__':
                           help='''
                           A path to save generated adversarial example.
                           If not given, cwd is used as default output directory.''')
+  arg_parser.add_argument('-s', '--size', dest='img_size', type=int, default=640,
+                          help='''
+                          A image size that will be passed to model and created as adversarial example.''')
 
   args = arg_parser.parse_args()
   app = AppDelegate()
