@@ -79,6 +79,15 @@ class YOLOv5VanishAttack(YOLOv5PGDAttackBase):
       x = torch.FloatTensor(x)
       x = x.permute(2, 0, 1) if x.size(-1) == 3 else x
 
+    input_shape = x.shape
+    if x.ndim != 3:
+      if (x.ndim == 4) and (1 < x.size(0)):
+        raise ValueError('Batched input to YOLOv5VanishAttack is unsupported.')
+      elif (x.ndim < 4) or (4 < x.ndim):
+        raise ValueError('The passed input tensor is invalid shape.')
+    else:
+       x = x.unsqueeze(0)
+
     if verbose:
       pbar = tqdm(total=max_iter, leave=True, desc='Generating AE ...')
 
@@ -108,4 +117,4 @@ class YOLOv5VanishAttack(YOLOv5PGDAttackBase):
       pbar.set_description(f'Done (in {steps} steps)')
       pbar.close()
 
-    return x_adv
+    return x_adv.view(input_shape)
