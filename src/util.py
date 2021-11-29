@@ -74,6 +74,6 @@ def save_image_tensor(save_path: str, image_tensor: torch.Tensor) -> np.ndarray:
   if image_tensor.size(0) == 3:  # assuming that tensor shape is CxHxW.
     image_tensor = image_tensor.permute(1, 2, 0)
 
-  img = cv2.cvtColor(image_tensor.numpy(), cv2.COLOR_RGB2BGR)
+  img = cv2.cvtColor(image_tensor.cpu().numpy(), cv2.COLOR_RGB2BGR)
   cv2.imwrite(save_path, img)
   return img
