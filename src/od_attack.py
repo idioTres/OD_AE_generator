@@ -65,8 +65,9 @@ class YOLOv5VanishAttack(nn.Module):
         pbar.update(1)
 
     if verbose:
+      steps = pbar.n
       pbar.update(pbar.total - pbar.n)
-      pbar.set_description('Done')
+      pbar.set_description(f'Done (in {steps} steps)')
       pbar.close()
 
     return x_adv
