@@ -14,20 +14,20 @@ class AppDelegate(object):
     super().__init__()
 
   def run(self, args: Namespace) -> int:
-    if not os.path.exists(args.image_path):
-      print(f'The image file path -i/--image=\'{args.image_path}\' is invalid.')
+    if not os.path.exists(args.img_path):
+      print(f'The image file path -i/--image=\'{args.img_path}\' is invalid.')
       return -1
     else:
       root_dir, ci = os.path.split(args.out_path if args.out_path is not None else os.getcwd())
       if '.' not in ci:
-        image_file_name = os.path.split(args.image_path)[-1]
-        image_file_name = image_file_name[:image_file_name.rindex('.')]
-        args.out_path = os.path.join(root_dir, ci, f'{image_file_name}_adv.bmp')
+        img_file_name = os.path.split(args.img_path)[-1]
+        img_file_name = img_file_name[:img_file_name.rindex('.')]
+        args.out_path = os.path.join(root_dir, ci, f'{img_file_name}_adv.bmp')
 
       os.makedirs(os.path.split(args.out_path)[0], exist_ok=True)
 
     img_size = [args.img_size] * 2
-    img = load_image(args.image_path)
+    img = load_image(args.img_path)
     img = mksquare(img, size=img_size)
 
     # @todo(meo-s): change following two lines for users to use their own settings.
@@ -44,7 +44,7 @@ class AppDelegate(object):
 
 if __name__ == '__main__':
   arg_parser = ArgumentParser()
-  arg_parser.add_argument('-i', '--image', dest='image_path', type=str, required=True,
+  arg_parser.add_argument('-i', '--image', dest='img_path', type=str, required=True,
                           help='''
                           A path to source image which will be used to generate adversarial example.''')
   arg_parser.add_argument('-m', '--model', dest='model_type', type=str,
