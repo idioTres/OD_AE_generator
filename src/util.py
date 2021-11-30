@@ -1,3 +1,4 @@
+import os
 from typing import Any, Dict, Optional, Tuple
 
 import cv2
@@ -8,6 +9,15 @@ import torchvision
 
 def query_dict(kargs: Dict[str, Any], key: str, default_value: Optional[Any] = None) -> Any:
   return kargs[key] if key in kargs else default_value
+
+
+def load_image(img_path: str) -> Optional[np.ndarray]:
+  if not os.path.exists(img_path):
+    return None
+
+  img = cv2.imread(img_path, cv2.IMREAD_COLOR)
+  img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+  return img
 
 
 def mksquare(img: np.ndarray,
