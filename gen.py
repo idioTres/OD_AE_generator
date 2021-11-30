@@ -1,7 +1,6 @@
 import os
 from argparse import ArgumentParser, Namespace
 
-import cv2
 import torch
 
 from src.util import load_image, mksquare, save_image_tensor
