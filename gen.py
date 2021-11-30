@@ -4,7 +4,7 @@ from argparse import ArgumentParser, Namespace
 import cv2
 import torch
 
-from src.util import mksquare, save_image_tensor
+from src.util import load_image, mksquare, save_image_tensor
 from src.od_attack import YOLOv5VanishAttack
 
 
@@ -27,8 +27,7 @@ class AppDelegate(object):
       os.makedirs(os.path.split(args.out_path)[0], exist_ok=True)
 
     img_size = [args.img_size] * 2
-    img = cv2.imread(args.image_path, cv2.IMREAD_COLOR)
-    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    img = load_image(args.image_path)
     img = mksquare(img, size=img_size)
 
     # @todo(meo-s): change following two lines for users to use their own settings.
