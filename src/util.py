@@ -76,14 +76,13 @@ def save_image_tensor(save_path: str, image_tensor: torch.Tensor) -> np.ndarray:
   if ext not in ['.bmp', '.png', '.jpg', '.jpeg']:
     raise ValueError(f'The unsupported image extension is passed (ext={ext}). An image extension must be one of bmp, png, jpg and jpeg.')
 
-  if image_tensor.ndim != 3:
-    raise ValueError('The passed tensor has invalid shape.')
-
-  image_tensor = image_tensor.detach()
+  image_tensor = image_tensor.detach().cpu().squeeze_()
+  if (image_tensor.ndim != 3) or (3 not in image_tensor.shape[[0, -1]]):
+      raise ValueError('The passed tensor has invalid shape.')
 
   if image_tensor.size(0) == 3:  # assuming that tensor shape is CxHxW.
     image_tensor = image_tensor.permute(1, 2, 0)
 
-  img = cv2.cvtColor(image_tensor.cpu().numpy(), cv2.COLOR_RGB2BGR)
+  img = cv2.cvtColor(image_tensor.numpy(), cv2.COLOR_RGB2BGR)
   cv2.imwrite(save_path, img)
   return img
