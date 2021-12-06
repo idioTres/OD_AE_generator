@@ -29,6 +29,9 @@ def test_query_dict():
 def test_load_image():
   img = np.random.randint(low=0, high=255, size=(10, 10, 3), dtype=np.uint8)
 
+  '''
+  Create unique temporary directory.
+  '''
   md5 = hashlib.md5(img.reshape(-1))
   test_dir = f'.{md5.hexdigest()}'
   os.mkdir(test_dir)
