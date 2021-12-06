@@ -88,13 +88,14 @@ class YOLOv5VanishAttack(YOLOv5PGDAttackBase):
     else:
        x = x.unsqueeze(0)
 
+    x = x.to(next(self._model.parameters())).detach()
+
     if verbose:
       pbar = tqdm(total=max_iter, leave=True, desc='Generating AE ...')
 
-    x = x.to(next(self._model.parameters()))
-    x_adv = x
+    x_adv = x.clone()
     for _ in range(max_iter):
-      x_adv.detach_().requires_grad_(True)
+      x_adv.requires_grad_(True)
 
       y_pred = non_max_suppression(self._model(x_adv)[0], conf_thres, iou_thres)[0]
       if y_pred.size(0) == 0:  # none of objects are detected.
@@ -105,7 +106,8 @@ class YOLOv5VanishAttack(YOLOv5PGDAttackBase):
       self._model.zero_grad()
       loss.backward()
 
-      x_adv = x_adv.detach_() - alpha * x_adv.grad.sign()
+      x_adv.detach_()
+      x_adv = x_adv - alpha * x_adv.grad.sign()
       x_adv = (x + (x_adv - x).clip(-eps, eps)).clip(0, 1)
 
       if verbose:
