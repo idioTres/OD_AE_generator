@@ -1,3 +1,4 @@
+import numpy as np
 import pytest
 
 from .. import util
@@ -8,11 +9,13 @@ def test_query_dict():
   some_dict = dict([[key, 'value']])
   assert util.query_dict(some_dict, key, 'not this') == some_dict[key]
 
-
-def test_query_dict_with_default_value():
+  '''
+  with default value
+  '''
   default_value = 'default_value'
   assert util.query_dict({}, '', default_value) == default_value
 
-
-def test_query_dict_without_default_value():
+  '''
+  without default value
+  '''
   assert util.query_dict({}, '') is None
