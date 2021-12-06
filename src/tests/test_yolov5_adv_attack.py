@@ -29,3 +29,22 @@ def _prepare_resources():
 
 
 _model, _img = _prepare_resources()
+
+
+def test_yolov5_vanish_attack():
+  hp = {'conf_thres': 0.15,
+        'iou_thres': 0.8,
+        'alpha': 0.002,
+        'eps': 0.04,
+        'max_iter': 100}
+
+  device = 'cuda' if torch.cuda.is_available() else 'cpu'
+  attacker = YOLOv5VanishAttack(_model, **hp).to(device)
+
+  img = torch.from_numpy(_img).to(device)
+  img = img.permute(2, 0, 1) / 255
+  adv_example = attacker(img)
+
+  y_pred = _model(adv_example.unsqueeze(0))[0]
+  y_pred = util.non_max_suppression(y_pred, hp['conf_thres'], hp['iou_thres'])[0]
+  assert y_pred.size(0) == 0
