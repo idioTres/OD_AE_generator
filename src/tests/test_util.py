@@ -1,3 +1,8 @@
+import os
+import shutil
+import hashlib
+
+import cv2
 import numpy as np
 
 from .. import util
@@ -18,6 +23,23 @@ def test_query_dict():
   without default value
   '''
   assert util.query_dict({}, '') is None
+
+
+def test_load_image():
+  img = np.random.randint(low=0, high=255, size=(10, 10, 3), dtype=np.uint8)
+
+  md5 = hashlib.md5(img.reshape(-1))
+  test_dir = f'.{md5.hexdigest()}'
+  os.mkdir(test_dir)
+
+  test_img_path = os.path.join(test_dir, 'test.png')
+  cv2.imwrite(test_img_path, img[:, :, ::-1])  # load_image() automatically converts BGR format to RGB format.
+
+  ret = util.load_image(test_img_path)
+  shutil.rmtree(test_dir)
+  assert np.all(ret == img)
+
+  assert util.load_image(test_img_path) is None
 
 
 def test_mksquare():
