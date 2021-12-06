@@ -5,6 +5,7 @@ import hashlib
 import cv2
 import torch
 import numpy as np
+import pytest
 
 from .. import util
 
@@ -66,3 +67,26 @@ def test_xywh2xyxy():
   xywh, target = torch.LongTensor([1, 4, 1000, 2]), torch.LongTensor([-499, 3, 501, 5])
   xyxy = util.xywh2xyxy(xywh)
   assert torch.all(xyxy == target).item() is True
+
+
+def test_save_image_tensor():
+  img = torch.randint(low=0, high=256, size=(10, 10, 3), dtype=torch.uint8)
+
+  md5 = hashlib.md5(img.numpy().reshape(-1))
+  test_img_path = f'.{md5.hexdigest()}'
+
+  with pytest.raises(ValueError, match=r'^.*image extension.*$'):
+    util.save_image_tensor(f'{test_img_path}.fail', img)
+
+  with pytest.raises(ValueError, match=r'^.*dtype is byte.*$'):
+    invalid_input = img.long()
+    util.save_image_tensor(f'{test_img_path}.bmp', invalid_input)
+
+  with pytest.raises(ValueError, match=r'^.*tensor.*invalid shape.*$'):
+    invalid_input = img.permute(0, 2, 1)
+    util.save_image_tensor(f'{test_img_path}.bmp', invalid_input)
+
+  img = img[None, None, ...]
+  util.save_image_tensor(f'{test_img_path}.bmp', img)
+  assert os.path.exists(f'{test_img_path}.bmp')
+  os.remove(f'{test_img_path}.bmp')
