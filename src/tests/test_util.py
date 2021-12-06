@@ -3,6 +3,7 @@ import shutil
 import hashlib
 
 import cv2
+import torch
 import numpy as np
 
 from .. import util
@@ -56,3 +57,9 @@ def test_mksquare():
   target_img = np.concatenate([pad, np.zeros((4, 8)), pad], axis=0)
 
   assert np.all(img == target_img)
+
+
+def test_xywh2xyxy():
+  xywh, target = torch.LongTensor([1, 4, 1000, 2]), torch.LongTensor([-499, 3, 501, 5])
+  xyxy = util.xywh2xyxy(xywh)
+  assert torch.all(xyxy == target).item() is True
